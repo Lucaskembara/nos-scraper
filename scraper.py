@@ -1,11 +1,11 @@
 from bs4 import BeautifulSoup
-from utils import load_exclude
+from utils import txt_to_list
 import pandas as pd
 import requests
 import time
 
 
-def get_articles(DATE_RANGE, SLEEP=1):
+def get_articles(DATE_RANGE: object, SLEEP=1) -> list:
     output = []
 
     for date in DATE_RANGE:
@@ -24,7 +24,7 @@ def get_articles(DATE_RANGE, SLEEP=1):
     return output
 
 
-def get_text(articles, SLEEP=1):
+def get_text(articles: list, SLEEP=1) -> list:
     output = []
 
     for date in articles:
@@ -44,14 +44,16 @@ def get_text(articles, SLEEP=1):
     return output
 
 
-def scrape_loop(DATE_RANGE, EXCLUDE=True):
+def scrape_loop(DATE_RANGE: object, EXCLUDE=True) -> pd.DataFrame:
     articles = get_articles(DATE_RANGE=DATE_RANGE)
     text = get_text(articles=articles)
 
     if EXCLUDE:
-        exclude_list = load_exclude()
+        exclude_list = txt_to_list("exclude_list.txt")
+        category_list = txt_to_list("category_list.txt")
 
         for i, e in enumerate(text):
-            text[i][2] = "".join([x for x in e[2] if x not in exclude_list])
+            text[i].append([x for x in e[2] if x in category_list])
+            text[i][2] = " ".join([x for x in e[2] if x not in exclude_list])
 
-    return pd.DataFrame(text, columns=["Date", "Title", "Text"])
+    return pd.DataFrame(text, columns=["Date", "Title", "Text", "Category"])
